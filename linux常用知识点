@@ -20,6 +20,94 @@ VIM的使用：
 	查看文件中间一段：sed -n '5,10p' + 文件路径
 	查看文件行数：wc -l + 文件路径
 
+Shift + GG 到文件底部
+/ + 关键字 从上往下查询
+？ + 关键字 从下往上查询
+查找到第一个之后，按 n 是查找下一个
+按Shift + n 是查找上一个
+tail:
+	-n 是显示行号；相当于nl命令；
+		tail -100f test.log 实时监控100行日志
+		tail -n 10 test.log 查询日志尾部最后10行的日志
+		tail -n +10 test.log 查询10行之后的所有日志
+head：
+	跟tail是相反的，tail是看后多少行日志；
+		head -n 10 test.log 查询日志文件的头10行日志
+		head -n -10 test.log 查询日志文件除了最后10行的其他所有日志
+cat:
+	tac是倒序查看，是cat单词反写；
+		cat -n test.log |grep "dubug" 查询关键字的日志 
+
+	cat -n test.log |tail -n +92|head -n 20  选择关键字所在的 一行. 然后查看这个关键字20行的日志
+
+	sed -n '/2018-11-29 10:17:20/,/2018-11-29 10:20:36/p'  test.log（目前无效）
+
+	cat -n test.log |grep "debug" |more     这样就分页打印了,通过点击空格键翻页
+
+	cat -n test.log |grep "debug"  >debug.txt 将其保存到文件中,到时可以拉下这个文件分析（>是新建，>>是追加）
+
+查找命令：
+	(1)find命令是根据文件的属性进行查找，如文件名，文件大小，所有者，所属组，是否为空，访问时间，修改时间等。 
+	(2)grep是根据文件的内容进行查找，会对文件的每一行按照给定的模式(patter)进行匹配查找。
+
+find：
+	1.按照文件名查找
+
+　　　　(1)find / -name httpd.conf　　#在根目录下查找文件httpd.conf，表示在整个硬盘查找
+　　　　(2)find /etc -name httpd.conf　　#在/etc目录下文件httpd.conf
+　　　　(3)find /etc -name '*srm*'　　#使用通配符*(0或者任意多个)。表示在/etc目录下查找文件名中含有字符串‘srm’的文件
+　　　　(4)find . -name 'srm*' 　　#表示当前目录下查找文件名开头是字符串‘srm’的文件
+
+　　2.按照文件特征查找 　　　　
+
+　　　　(1)find / -amin -10 　　# 查找在系统中最后10分钟访问的文件(access time)
+　　　　(2)find / -atime -2　　 # 查找在系统中最后48小时访问的文件
+　　　　(3)find / -empty 　　# 查找在系统中为空的文件或者文件夹
+　　　　(4)find / -group cat 　　# 查找在系统中属于 group为cat的文件
+　　　　(5)find / -mmin -5 　　# 查找在系统中最后5分钟里修改过的文件(modify time)
+　　　　(6)find / -mtime -1 　　#查找在系统中最后24小时里修改过的文件
+　　　　(7)find / -user fred 　　#查找在系统中属于fred这个用户的文件
+　　　　(8)find / -size +10000c　　#查找出大于10000000字节的文件(c:字节，w:双字，k:KB，M:MB，G:GB)
+　　　　(9)find / -size -1000k 　　#查找出小于1000KB的文件
+
+　　3.使用混合查找方式查找文件
+
+　　　　参数有： ！，-and(-a)，-or(-o)。
+
+　　　　(1)find /tmp -size +10000c -and -mtime +2 　　#在/tmp目录下查找大于10000字节并在最后2分钟内修改的文件
+   　　 (2)find / -user fred -or -user george 　　#在/目录下查找用户是fred或者george的文件文件
+   　　 (3)find /tmp ! -user panda　　#在/tmp目录中查找所有不属于panda用户的文件
+
+grep:
+	1.主要参数
+
+　　　　[options]主要参数：
+　　　　－c：只输出匹配行的计数。
+　　　　－i：不区分大小写
+　　　　－h：查询多文件时不显示文件名。
+　　　　－l：查询多文件时只输出包含匹配字符的文件名。
+　　　　－n：显示匹配行及行号。
+　　　　－s：不显示不存在或无匹配文本的错误信息。
+　　　　－v：显示不包含匹配文本的所有行。
+
+　　　　pattern正则表达式主要参数：
+　　　　\： 忽略正则表达式中特殊字符的原有含义。
+　　　　^：匹配正则表达式的开始行。
+　　　　$: 匹配正则表达式的结束行。
+　　　　\<：从匹配正则表达 式的行开始。
+　　　　\>：到匹配正则表达式的行结束。
+　　　　[ ]：单个字符，如[A]即A符合要求 。
+　　　　[ - ]：范围，如[A-Z]，即A、B、C一直到Z都符合要求 。
+　　　　.：所有的单个字符。
+　　　　* ：有字符，长度可以为0。
+	示例：
+	(1)grep 'test' d*　　#显示所有以d开头的文件中包含 test的行
+　　(2)grep ‘test’ aa bb cc 　　 #显示在aa，bb，cc文件中包含test的行
+　　(3)grep ‘[a-z]\{5\}’ aa 　　#显示所有包含每行字符串至少有5个连续小写字符的字符串的行
+　　(4)grep magic /usr/src　　#显示/usr/src目录下的文件(不含子目录)包含magic的行
+　　(5)grep -r magic /usr/src　　#显示/usr/src目录下的文件(包含子目录)包含magic的行
+　　(6)grep -w pattern files ：只匹配整个单词，而不是字符串的一部分(如匹配’magic’，而不是’magical’)，
+
 解压缩命令：
 	压缩命令：zip -r
 			 -r 递归压缩子目录下的所有文件
@@ -29,4 +117,70 @@ VIM的使用：
 			 -o 不提示的情况下覆盖文件
 			 -d 指定解压文件的目录时才需要（不加次后缀解压到当前目录）
 
+查看进程：
+	ps -ef|grep java
+	kill -9 + PID
 
+日志文件说明:
+	/var/log/message 系统启动后的信息和错误日志，是Red Hat Linux中常用的日志之一
+	/var/log/secure 与安全相关的日志信息
+	/var/log/maillog 与邮件相关的日志信息
+	/var/log/cron 与定时任务相关的日志信息
+####/var/log/spooler 与UUCP和news设备相关的日志信息
+	/var/log/boot.log 守护进程启动和停止相关的日志消息
+
+系统:
+	uname -a 查看内核/操作系统/CPU信息
+	cat /etc/issue linux本地终端登录的欢迎语句存储文件 配置文件为 /etc/motd 
+	cat /etc/issue.net linux远程终端登录的欢迎语句存储文件 不支持转义字符 配置文件，/etc/ssh/sshd_config 的 Banner 字段
+	cat /etc/redhat-release 查看操作系统版本
+	cat /proc/cpuinfo 查看CPU信息
+	hostname 查看计算机名
+####lspci -tv 列出所有PCI设备
+	lsusb -tv 列出所有USB设备
+	lsmod 列出加载的内核模块
+	env 查看环境变量
+
+资源:
+	free -m 查看内存使用量和交换区使用量
+	df -h 查看各分区使用情况
+	du -sh <目录名> 查看指定目录的大小
+	grep MemTotal /proc/meminfo 查看内存总量
+	grep MemFree /proc/meminfo 查看空闲内存量
+	uptime 查看系统运行时间、用户数、负载
+	cat /proc/loadavg 查看系统负载
+
+磁盘和分区:
+	mount | column -t 查看挂接的分区状态
+	fdisk -l 查看所有分区
+	swapon -s 查看所有交换分区
+####hdparm -i /dev/hda 查看磁盘参数（仅适用于IDE设备）
+####dmesg | grep IDE 查看启动时IDE设备检测状况
+
+网络:
+	ifconfig 查看所有网络接口的属性
+	iptables -L 查看防火墙设置
+	route -n 查看路由表
+	netstat -Intp 查看所有监听端口
+	netstat -antp 查看所有已经建立的连接
+	netstat -s 查看网络统计信息
+
+进程：
+	ps -ef 查看所有进程
+	top 实时显示进程状态
+
+用户：
+	w 查看活动用户
+	id <用户名> 查看指定用户信息
+	last 查看用户登录日志
+	cat /etc/passwd 查看系统所有用户
+	cat /etc/passwd|grep -v nologin|grep -v halt|grep -v shutdown|awk -F":" '{ print $1"|"$3"|"$4 }'|more
+	cat /etc/group 查看系统所有组
+	crontab -l 查看当前用户的计划任务
+
+服务：
+	chkconfig -list 列出所有系统服务
+	chkconfig -list | grep on 列出所有启动的系统服务
+
+程序:
+	rpm -qa 查看所有安装的软件包
